@@ -1,15 +1,16 @@
 package com.smartcampus.operationshub.config;
 
-import com.smartcampus.operationshub.facilities.entity.Facility;
-import com.smartcampus.operationshub.facilities.entity.FacilityStatus;
-import com.smartcampus.operationshub.facilities.entity.FacilityType;
-import com.smartcampus.operationshub.facilities.repository.FacilityRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+
+import com.smartcampus.operationshub.facilities.entity.Facility;
+import com.smartcampus.operationshub.facilities.entity.FacilityStatus;
+import com.smartcampus.operationshub.facilities.entity.FacilityType;
+import com.smartcampus.operationshub.facilities.repository.FacilityRepository;
 
 @Configuration
 @Profile("local")
@@ -19,6 +20,7 @@ public class LocalTempDataSeeder {
     private static final String TEMP_FACILITY_NAME = "TEMP_SYNC_DB_CHECK";
 
     @Bean
+    @SuppressWarnings("unused")
     CommandLineRunner seedTemporaryFacility(FacilityRepository facilityRepository) {
         return args -> {
             if (facilityRepository.existsByName(TEMP_FACILITY_NAME)) {
