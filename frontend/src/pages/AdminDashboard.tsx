@@ -43,6 +43,8 @@ interface Notification {
   read: boolean
 }
 
+type NotificationCategory = "user-management" | "faculty-notifications"
+
 // --- Components ---
 
 interface NavItemProps {
@@ -224,6 +226,7 @@ function UserManagement() {
 function NotificationsCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeCategory, setActiveCategory] = useState<NotificationCategory>("user-management")
 
   const fetchNotifications = async () => {
     try {
@@ -265,6 +268,21 @@ function NotificationsCenter() {
 
   useEffect(() => { fetchNotifications() }, [])
 
+  const userManagementNotifications = notifications.filter((notification) =>
+    notification.type === "USER_REGISTRATION" || notification.type.startsWith("USER_")
+  )
+
+  const facultyNotifications = notifications.filter((notification) =>
+    notification.type.startsWith("FACILITY_")
+  )
+
+  const activeNotifications =
+    activeCategory === "user-management" ? userManagementNotifications : facultyNotifications
+
+  const activeCount = activeNotifications.filter((notification) => !notification.read).length
+  const userManagementUnreadCount = userManagementNotifications.filter((notification) => !notification.read).length
+  const facultyUnreadCount = facultyNotifications.filter((notification) => !notification.read).length
+
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="space-y-3">
@@ -272,12 +290,75 @@ function NotificationsCenter() {
         <p className="text-white/60 font-medium max-w-sm">Real-time telemetry and identity lifecycle events requiring administrative oversight.</p>
       </div>
 
+      <div className="space-y-4 rounded-[30px] border border-white/10 bg-gradient-to-br from-white/[0.05] via-white/[0.02] to-transparent p-4 sm:p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[10px] font-black uppercase tracking-[0.32em] text-white/55">Notification Channels</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">
+            {activeCount} unread in active channel
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setActiveCategory("user-management")}
+            className={`group relative overflow-hidden rounded-3xl border px-5 py-4 text-left transition-all duration-300 sm:px-6 sm:py-5 ${
+              activeCategory === "user-management"
+                ? "border-indigo-400/30 bg-gradient-to-br from-indigo-500/20 via-indigo-500/10 to-transparent text-indigo-100 shadow-[0_20px_50px_rgba(99,102,241,0.2)]"
+                : "border-white/10 bg-white/[0.03] text-white/60 hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+            }`}
+          >
+            <span className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-indigo-400/15 blur-2xl" />
+            <span className="relative flex items-start justify-between gap-4">
+              <span className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-current/20 bg-current/10">
+                  <UserPlus className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                </span>
+                <span className="flex flex-col">
+                  <span className="text-xs font-black uppercase tracking-[0.28em]">User Management</span>
+                  <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] opacity-75">Identity lifecycle events</span>
+                </span>
+              </span>
+              <span className="rounded-full border border-current/25 bg-current/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                {userManagementUnreadCount}
+              </span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveCategory("faculty-notifications")}
+            className={`group relative overflow-hidden rounded-3xl border px-5 py-4 text-left transition-all duration-300 sm:px-6 sm:py-5 ${
+              activeCategory === "faculty-notifications"
+                ? "border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent text-emerald-100 shadow-[0_20px_50px_rgba(16,185,129,0.2)]"
+                : "border-white/10 bg-white/[0.03] text-white/60 hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+            }`}
+          >
+            <span className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-emerald-400/15 blur-2xl" />
+            <span className="relative flex items-start justify-between gap-4">
+              <span className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-current/20 bg-current/10">
+                  <Building2 className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                </span>
+                <span className="flex flex-col">
+                  <span className="text-xs font-black uppercase tracking-[0.28em]">Faculty Notifications</span>
+                  <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] opacity-75">Facility operation events</span>
+                </span>
+              </span>
+              <span className="rounded-full border border-current/25 bg-current/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                {facultyUnreadCount}
+              </span>
+            </span>
+          </button>
+        </div>
+      </div>
+
       <div className="grid gap-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-4 custom-scrollbar">
         {loading ? (
           <div className="p-20 text-center text-white/10 font-black uppercase tracking-widest border border-white/5 rounded-[40px]">Syncing Telemetry...</div>
-        ) : notifications.length === 0 ? (
+        ) : activeNotifications.length === 0 ? (
           <div className="p-20 text-center text-white/10 font-black uppercase tracking-widest border border-white/5 rounded-[40px]">No active alerts detected</div>
-        ) : notifications.map(n => (
+        ) : activeNotifications.map(n => (
           <div 
             key={n.id} 
             className={`group p-6 rounded-3xl border transition-all duration-300 flex items-center justify-between ${
